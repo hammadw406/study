@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1380" height="760" viewBox="0 0 1380 760" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#37474F"/>
+    </marker>
+    <style>
+      .act { fill:#E3F2FD; stroke:#1565C0; stroke-width:2; }
+      .sys { fill:#FFFFFF; stroke:#546E7A; stroke-width:1.8; }
+      .bar { fill:#111; }
+      .ln  { stroke:#37474F; stroke-width:1.8; fill:none; marker-end:url(#arr); }
+      .t   { font-size:15px; fill:#0D2A4A; text-anchor:middle; }
+      .st  { font-size:13px; fill:#455A64; text-anchor:middle; }
+      .g   { font-size:14px; fill:#B71C1C; font-style:italic; }
+      .lg  { font-size:13px; fill:#37474F; }
+    </style>
+  </defs>
+
+  <rect width="1380" height="760" fill="#FFFFFF"/>
+  <text x="690" y="36" font-size="24" font-weight="700" fill="#0D2A4A" text-anchor="middle">Process Model of Involuntary Detention</text>
+  <text x="690" y="60" font-size="14" fill="#607D8B" text-anchor="middle">UML Activity Diagram · MHC-PMS (Sommerville, Ch. 5)</text>
+
+  <g transform="translate(0,70)">
+    <!-- Start -->
+    <circle cx="40" cy="300" r="14" fill="#1565C0"/>
+    <line class="ln" x1="54" y1="300" x2="80" y2="300"/>
+
+    <!-- Confirm detention decision -->
+    <rect class="act" x="80" y="268" width="150" height="64" rx="28"/>
+    <text class="t" x="155" y="295">Confirm detention</text>
+    <text class="t" x="155" y="314">decision</text>
+    <line class="ln" x1="230" y1="300" x2="265" y2="300"/>
+
+    <!-- Fork 1 -->
+    <rect class="bar" x="266" y="180" width="8" height="240" rx="2"/>
+    <line class="ln" x1="274" y1="200" x2="300" y2="200"/>
+    <line class="ln" x1="274" y1="400" x2="300" y2="400"/>
+
+    <!-- Inform patient of rights -->
+    <rect class="act" x="300" y="168" width="150" height="64" rx="28"/>
+    <text class="t" x="375" y="195">Inform patient</text>
+    <text class="t" x="375" y="214">of rights</text>
+    <line class="ln" x1="450" y1="200" x2="485" y2="200"/>
+
+    <!-- Record detention decision -->
+    <rect class="act" x="300" y="368" width="150" height="64" rx="28"/>
+    <text class="t" x="375" y="395">Record detention</text>
+    <text class="t" x="375" y="414">decision</text>
+    <line class="ln" x1="450" y1="400" x2="485" y2="400"/>
+
+    <!-- system MHC-PMS (record) -->
+    <rect class="sys" x="315" y="480" width="120" height="50"/>
+    <text class="st" x="375" y="500">«system»</text>
+    <text class="t" x="375" y="519">MHC-PMS</text>
+    <line class="ln" x1="375" y1="480" x2="375" y2="433"/>
+
+    <!-- Join 1 -->
+    <rect class="bar" x="486" y="180" width="8" height="240" rx="2"/>
+    <line class="ln" x1="494" y1="300" x2="529" y2="300"/>
+
+    <!-- Decision -->
+    <polygon points="550,278 572,300 550,322 528,300" fill="#FFF8E1" stroke="#F57F17" stroke-width="2"/>
+    <path class="ln" d="M550,278 L550,160 L620,160"/>
+    <text class="g" x="558" y="228">[dangerous]</text>
+    <path class="ln" d="M550,322 L550,450 L620,450"/>
+    <text class="g" x="558" y="388">[not dangerous]</text>
+
+    <!-- Find secure place -->
+    <rect class="act" x="620" y="128" width="150" height="64" rx="28"/>
+    <text class="t" x="695" y="155">Find secure</text>
+    <text class="t" x="695" y="174">place</text>
+    <line class="ln" x1="770" y1="148" x2="840" y2="82"/>
+    <text class="g" x="692" y="104">[not available]</text>
+    <line class="ln" x1="770" y1="172" x2="840" y2="218"/>
+    <text class="g" x="745" y="238">[available]</text>
+
+    <!-- Transfer to police station -->
+    <rect class="act" x="840" y="48" width="160" height="64" rx="28"/>
+    <text class="t" x="920" y="75">Transfer to</text>
+    <text class="t" x="920" y="94">police station</text>
+    <line class="ln" x1="1000" y1="80" x2="1045" y2="80"/>
+
+    <!-- Transfer to secure hospital -->
+    <rect class="act" x="840" y="188" width="160" height="64" rx="28"/>
+    <text class="t" x="920" y="215">Transfer to</text>
+    <text class="t" x="920" y="234">secure hospital</text>
+    <line class="ln" x1="1000" y1="220" x2="1045" y2="220"/>
+
+    <!-- Admit to hospital -->
+    <rect class="act" x="620" y="418" width="150" height="64" rx="28"/>
+    <text class="t" x="695" y="445">Admit to</text>
+    <text class="t" x="695" y="464">hospital</text>
+    <line class="ln" x1="770" y1="450" x2="1045" y2="450"/>
+
+    <!-- system Admissions -->
+    <rect class="sys" x="630" y="530" width="130" height="62"/>
+    <text class="st" x="695" y="550">«system»</text>
+    <text class="t" x="695" y="568">Admissions</text>
+    <text class="t" x="695" y="585">system</text>
+    <line class="ln" x1="695" y1="530" x2="695" y2="483"/>
+
+    <!-- Join / Fork 2 -->
+    <rect class="bar" x="1046" y="50" width="8" height="420" rx="2"/>
+    <line class="ln" x1="1054" y1="160" x2="1090" y2="160"/>
+    <line class="ln" x1="1054" y1="280" x2="1090" y2="280"/>
+    <line class="ln" x1="1054" y1="400" x2="1090" y2="400"/>
+
+    <!-- Final parallel activities -->
+    <rect class="act" x="1090" y="128" width="150" height="64" rx="28"/>
+    <text class="t" x="1165" y="155">Inform</text>
+    <text class="t" x="1165" y="174">social care</text>
+    <line class="ln" x1="1240" y1="160" x2="1275" y2="160"/>
+
+    <rect class="act" x="1090" y="248" width="150" height="64" rx="28"/>
+    <text class="t" x="1165" y="275">Inform</text>
+    <text class="t" x="1165" y="294">next of kin</text>
+    <line class="ln" x1="1240" y1="280" x2="1275" y2="280"/>
+
+    <rect class="act" x="1090" y="368" width="150" height="64" rx="28"/>
+    <text class="t" x="1165" y="395">Update</text>
+    <text class="t" x="1165" y="414">register</text>
+    <line class="ln" x1="1240" y1="400" x2="1275" y2="400"/>
+
+    <!-- system MHC-PMS (register) -->
+    <rect class="sys" x="1105" y="480" width="120" height="50"/>
+    <text class="st" x="1165" y="500">«system»</text>
+    <text class="t" x="1165" y="519">MHC-PMS</text>
+    <line class="ln" x1="1165" y1="480" x2="1165" y2="433"/>
+
+    <!-- Join 3 -->
+    <rect class="bar" x="1276" y="130" width="8" height="300" rx="2"/>
+    <line class="ln" x1="1284" y1="280" x2="1313" y2="280"/>
+
+    <!-- End -->
+    <circle cx="1332" cy="280" r="17" fill="#FFFFFF" stroke="#1565C0" stroke-width="2.5"/>
+    <circle cx="1332" cy="280" r="10" fill="#1565C0"/>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(60,700)">
+    <rect x="-20" y="-28" width="1300" height="56" rx="10" fill="#F5F7FA" stroke="#CFD8DC"/>
+    <circle cx="10" cy="0" r="9" fill="#1565C0"/>
+    <text class="lg" x="28" y="5">Start</text>
+    <circle cx="105" cy="0" r="11" fill="#fff" stroke="#1565C0" stroke-width="2"/>
+    <circle cx="105" cy="0" r="6" fill="#1565C0"/>
+    <text class="lg" x="124" y="5">End</text>
+    <rect class="act" x="180" y="-14" width="56" height="28" rx="13"/>
+    <text class="lg" x="246" y="5">Activity</text>
+    <rect class="bar" x="330" y="-14" width="6" height="28"/>
+    <text class="lg" x="346" y="5">Fork / Join (parallel)</text>
+    <polygon points="520,-12 532,0 520,12 508,0" fill="#FFF8E1" stroke="#F57F17" stroke-width="2"/>
+    <text class="lg" x="542" y="5">Decision</text>
+    <text class="g" x="630" y="5">[guard]</text>
+    <text class="lg" x="690" y="5">Condition on a path</text>
+    <rect class="sys" x="850" y="-14" width="56" height="28"/>
+    <text class="lg" x="916" y="5">«system» that supports the activity</text>
+  </g>
+</svg>
