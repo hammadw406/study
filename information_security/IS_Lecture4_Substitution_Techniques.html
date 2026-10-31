@@ -1,0 +1,225 @@
+<!doctype html><html><head><meta charset="utf-8"><title>IS Lecture 4 Substitution Techniques</title><style>
+body{font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:11.5px;color:#1b2733;line-height:1.45}
+h1{font-size:24px;color:#0D2A4A;margin:0 0 4px} .sub{color:#607D8B;margin-bottom:12px}
+h2{font-size:17px;color:#fff;background:#0D2A4A;padding:6px 10px;border-radius:6px;margin:18px 0 8px;page-break-after:avoid}
+h3{font-size:14px;color:#1565C0;border-bottom:2px solid #BBDEFB;padding-bottom:2px;margin:14px 0 6px;page-break-after:avoid}
+table.t{border-collapse:collapse;margin:5px 0} table.t td,table.t th{border:1px solid #B0BEC5;padding:3px 7px;text-align:center} table.t th{background:#E3F2FD}
+table.sm td,table.sm th{padding:2px 5px;font-size:10.5px}
+table.m{border-collapse:collapse;margin:5px 0;display:inline-table;margin-right:16px} table.m td{border:1.5px solid #1565C0;width:30px;height:24px;text-align:center;font-weight:700;font-size:12px}
+.box{background:#F5F9FF;border:1px solid #BBDEFB;border-radius:8px;padding:8px 12px;margin:8px 0;page-break-inside:avoid}
+.warn{background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:8px 12px;margin:8px 0;page-break-inside:avoid}
+pre{background:#F1F3F5;padding:8px;border-radius:6px;font-size:11px;line-height:1.35} code{background:#F1F3F5;padding:0 4px;border-radius:3px}
+ol li,ul li{margin:2px 0} .ans{border-left:4px solid #1565C0;background:#FAFBFC;padding:5px 10px;margin:6px 0;page-break-inside:avoid}
+.pb{page-break-before:always}
+</style></head><body>
+<h1>Information Security · Lecture 4 — Substitution Techniques</h1>
+<div class="sub">Complete prep + practice · Monoalphabetic · Caesar · Playfair · Polyalphabetic · Vigenère · Vernam · Hill · follows the lecture's conventions (A = 0) · every answer verified by computation</div>
+
+<h2>Part 0 — Toolkit (memorise first)</h2>
+<h3>Alphabet table (A = 0)</h3><table class='t sm'><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th><th>M</th></tr><tr><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td></tr><tr><th>N</th><th>O</th><th>P</th><th>Q</th><th>R</th><th>S</th><th>T</th><th>U</th><th>V</th><th>W</th><th>X</th><th>Y</th><th>Z</th></tr><tr><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td></tr></table>
+<p>💡 Anchors: <b>A=0, E=4, J=9, O=14, T=19, Z=25</b> — <i>"Every Jolly Owl Talks Zen"</i>.</p>
+<h3>Three golden rules of mod 26</h3>
+<ol><li><b>Bigger than 25?</b> Subtract 26 (or a multiple) → 29 → 3.</li><li><b>Negative?</b> <b>Add 26</b> → −9 + 26 = 17.</li><li>The answer is always <b>0 – 25</b>.</li></ol>
+<p><b>Multiples of 26</b> (for Hill): 26 · 52 · 78 · 104 · 130 · 156 · 182 · 208 · 234 · 260 · 286 · 312 · 338 · 364 · 390 · 416 · 442 · 468 · 494 · 520 &nbsp;(e.g. 114 mod 26 = 114 − 104 = 10)</p>
+
+<h2>Part 1 — The Big Picture</h2>
+<pre>Symmetric (conventional) encryption
+├── Substitution  → letters are REPLACED
+│   ├── Monoalphabetic (one fixed alphabet, one-to-one)
+│   │    ├── Caesar cipher
+│   │    └── Playfair cipher      ← teacher's classification
+│   └── Polyalphabetic (many alphabets, one-to-many)
+│        ├── Vigenère cipher
+│        ├── Vernam cipher (One-Time Pad)
+│        └── Hill cipher          ← teacher's classification
+└── Transposition → letters are REARRANGED</pre>
+<div class="warn">⚠ Some textbooks call Playfair a "digraph" and Hill a "polygraphic" cipher. <b>In the paper, follow the slides:</b> Playfair = monoalphabetic, Hill = polyalphabetic.</div>
+<table class="t"><tr><th></th><th>Monoalphabetic</th><th>Polyalphabetic</th></tr>
+<tr><td>Alphabets</td><td>One fixed</td><td>Multiple</td></tr>
+<tr><td>Mapping changes?</td><td>Never</td><td>Changes during message</td></tr>
+<tr><td>Relationship</td><td>One-to-one</td><td>One-to-many</td></tr>
+<tr><td>Same plain letter →</td><td>Always same cipher letter</td><td>Can become different letters</td></tr>
+<tr><td>Slide example</td><td>MY NAME → <b>N</b>P OB<b>N</b>Z</td><td>MY NAME → <b>N</b>P OB<b>X</b>Z</td></tr>
+<tr><td>Frequency analysis</td><td>Vulnerable</td><td>Reduces patterns</td></tr>
+<tr><td>Strength</td><td>Weaker</td><td>Stronger</td></tr>
+<tr><td>Examples</td><td>Caesar, Playfair</td><td>Vigenère, Vernam, Hill</td></tr></table>
+
+<h2>1. Monoalphabetic Substitution Cipher (Slide 18)</h2>
+<p>Uses <b>one fixed substitution alphabet</b> for the whole message; each plaintext letter is replaced by <b>one specific</b> ciphertext letter and the substitution <b>never changes</b>.</p>
+<ul><li>One-to-one relationship · M always becomes N (MY NAME → NP OBNZ).</li>
+<li><b>Weakness:</b> frequency analysis — letter patterns remain (E is the most common English letter).</li>
+<li><b>Examples:</b> Caesar, Playfair.</li></ul>
+<p>General monoalphabetic key (used in practice M1–M3):</p><table class='t sm'><tr><th>Plain</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td><td>G</td><td>H</td><td>I</td><td>J</td><td>K</td><td>L</td><td>M</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td></tr><tr><th>Cipher</th><td>Q</td><td>W</td><td>E</td><td>R</td><td>T</td><td>Y</td><td>U</td><td>I</td><td>O</td><td>P</td><td>A</td><td>S</td><td>D</td><td>F</td><td>G</td><td>H</td><td>J</td><td>K</td><td>L</td><td>Z</td><td>X</td><td>C</td><td>V</td><td>B</td><td>N</td><td>M</td></tr></table>
+<h3>Practice — Monoalphabetic</h3><ol>
+<li>Encrypt <b>SECRET</b> with the key table above.</li><li>Encrypt <b>MONEY</b>.</li><li>Decrypt <b>ITSSG</b>.</li>
+<li>In "MY NAME → NP OBNZ", which cipher letter appears twice and why does that prove it is monoalphabetic?</li>
+<li>Why is a monoalphabetic cipher weak against frequency analysis?</li>
+<li>True/False: "In a monoalphabetic cipher, A can be encrypted as D in one place and K in another."</li></ol>
+
+<h2>2. Caesar Cipher (Slides 20–25)</h2>
+<ul><li>Also called the <b>Shift Cipher</b>; each letter shifted by a fixed number; <b>monoalphabetic</b>; one of the earliest ciphers.</li>
+<li><b>Julius Caesar used key = 3</b> for military messages.</li></ul>
+<div class="box"><b>Encryption:</b> C = E(k, p) = (p + k) mod 26 &nbsp;&nbsp; <b>Decryption:</b> P = D(k, c) = (c − k) mod 26 (negative → add 26)<br>💡 <i>"Plus to hide, minus to find."</i></div>
+<p><b>Key space:</b> 1 ≤ k ≤ 25 → only <b>25 keys</b> (k = 0 gives the original text) → <b>brute-force attack</b> tries all 25.</p>
+<h3>Table method (slide 24): HELLO, k = 4</h3>
+<table class="t"><tr><th>Letter</th><th>Value</th><th>C = (p + k) mod 26</th><th>Result</th><th>Cipher</th></tr>
+<tr><td>H</td><td>7</td><td>(7+4) mod 26 = 11</td><td>11</td><td>L</td></tr><tr><td>E</td><td>4</td><td>(4+4) mod 26 = 8</td><td>8</td><td>I</td></tr>
+<tr><td>L</td><td>11</td><td>(11+4) mod 26 = 15</td><td>15</td><td>P</td></tr><tr><td>L</td><td>11</td><td>(11+4) mod 26 = 15</td><td>15</td><td>P</td></tr>
+<tr><td>O</td><td>14</td><td>(14+4) mod 26 = 18</td><td>18</td><td>S</td></tr></table>
+<p>Ciphertext: <b>LIPPS</b>. Decryption uses the same table with (c − k).</p>
+<div class="warn">⚠ Traps: X + 3 = 26 → 26 mod 26 = 0 = <b>A</b> · D − 4 = −1 → +26 = 25 = <b>Z</b> · Slide 21 "A = 1 implies B" means <b>key 1</b>, values still start at A = 0 · ignore spaces.</div>
+<h3>Practice — Caesar</h3><ol>
+<li>Encrypt <b>ATTACK</b>, k = 3.</li><li>Encrypt <b>ZEBRA</b>, k = 5 (wrap-around).</li><li>Decrypt <b>WKLV LV IXQ</b>, k = 3.</li><li>Decrypt <b>BQQMF</b>, k = 1.</li>
+<li>Decrypt <b>EYHF</b>, k = 7 (negative values).</li><li>Ciphertext <b>KHOOR</b>, key unknown — brute force to find key and plaintext.</li>
+<li>Encrypt <b>SECURITY</b>, k = 10, using the full table method.</li><li>Why are there only 25 useful keys? What attack does this allow?</li></ol>
+
+<h2>3. Playfair Cipher (Slides 26–29)</h2>
+<ul><li>Invented in <b>1854 by Wheatstone</b> · <b>5 × 5 matrix</b> · <b>I and J share one cell</b> · encrypts <b>pairs (digraphs)</b>.</li></ul>
+<h3>Step 1 — Build the matrix</h3>
+<p>Write the keyword letters first (skip repeats), then the remaining alphabet in order (I/J together). Must have exactly 25 cells. Slide key <b>ABHI</b>:</p><table class='m'><tr><td>A</td><td>B</td><td>H</td><td>I/J</td><td>C</td></tr><tr><td>D</td><td>E</td><td>F</td><td>G</td><td>K</td></tr><tr><td>L</td><td>M</td><td>N</td><td>O</td><td>P</td></tr><tr><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td></tr><tr><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td></tr></table>
+<h3>Step 2 — Make pairs (teacher's rules)</h3>
+<table class="t"><tr><th>Situation</th><th>Rule</th><th>Example</th></tr>
+<tr><td>Normal</td><td>Split into pairs</td><td>heyar → he ya r…</td></tr>
+<tr><td>Lone last letter</td><td>Add <b>Z</b></td><td>heyar → he ya <b>rz</b></td></tr>
+<tr><td>Same letter in a pair</td><td>Insert <b>X</b> after the first</td><td>hello → he <b>lx</b> lo</td></tr></table>
+<div class="warn">⚠ Teacher uses <b>Z</b> for a lone letter and <b>X</b> for doubles. After inserting X, <b>re-pair the rest</b>: BALLOON → BA LX LO ON. BOOKKEEPER → BO OK KE EP ER (no X needed — only pairs matter).</div>
+<h3>Step 3 — Encrypt each pair</h3>
+<table class="t"><tr><th>Rule</th><th>Situation</th><th>Encrypt</th><th>Decrypt</th></tr>
+<tr><td>1</td><td>Same row</td><td>Letter to the <b>right</b> (wrap)</td><td>Letter to the <b>left</b></td></tr>
+<tr><td>2</td><td>Same column</td><td>Letter <b>below</b> (wrap)</td><td>Letter <b>above</b></td></tr>
+<tr><td>3</td><td>Rectangle</td><td colspan="2">Each letter → <b>other corner in its own row</b> (same both ways)</td></tr></table>
+<p>💡 Rectangle: <i>"Stay in your row, move to your partner's column."</i></p>
+<h3>Slide 28 worked (key ABHI, KSKLBMRWUQQW)</h3>
+<table class="t"><tr><th>Pair</th><th>Rule</th><th>Result</th></tr>
+<tr><td>KS</td><td>Rectangle: K → F, S → U</td><td><b>FU</b></td></tr><tr><td>KL</td><td>Rectangle: K → D, L → P</td><td><b>DP</b></td></tr>
+<tr><td>BM</td><td>Same column, below: B → E, M → R</td><td><b>ER</b></td></tr><tr><td>RW</td><td>Same column: R → W, W wraps to B</td><td><b>WB</b></td></tr>
+<tr><td>UQ</td><td>Same row, right: U wraps to Q, Q → R</td><td><b>QR</b></td></tr><tr><td>QW</td><td>Rectangle: Q → R, W → V</td><td><b>RV</b></td></tr></table>
+<p>Ciphertext <b>FUDPERWBQRRV</b> ✓</p>
+<h3>Slide 29 (second key matrix): hello → he lx lo → EC QZ BX → <b>ECQZBX</b> ✓</h3>
+<div class="box"><b>Checklist:</b> skip repeated key letters · combine I/J · 25 cells · X for doubles and re-pair · Z for lone letter · rectangle = own row · wrap at edges.</div>
+<h3>Practice — Playfair</h3><ol>
+<li>Key <b>MONARCHY</b>: build the matrix and encrypt <b>INSTRUMENTS</b>.</li><li>Key <b>ABHI</b>: encrypt <b>MEET</b>.</li>
+<li>Key <b>SECURITY</b>: encrypt <b>BALLOON</b>.</li><li>Key <b>KEYWORD</b>: encrypt <b>HAMMER</b>.</li>
+<li>Key <b>ABHI</b>: decrypt <b>ICEF</b>.</li><li>Digraphs only: (a) BOOKKEEPER (b) TOOTH (c) COMMITTEE.</li>
+<li>Key <b>PLAYFAIR</b>: encrypt <b>HIDE THE GOLD</b>.</li><li>Why are I and J combined? Who invented Playfair, and when?</li></ol>
+
+<h2>4. Polyalphabetic Cipher (Slide 19)</h2>
+<ul><li>Uses <b>multiple substitution alphabets</b>; encryption <b>changes during the message</b>; <b>no fixed substitution</b>.</li>
+<li>Same plain letter → different cipher letters (M → N, later M → X) · <b>one-to-many</b>.</li>
+<li><b>Stronger</b> than monoalphabetic — <b>reduces frequency patterns</b>. Examples: Vigenère, Vernam, Hill.</li></ul>
+<h3>Practice — Polyalphabetic</h3><ol>
+<li>Define a polyalphabetic cipher.</li><li>In "MY NAME → NP OBXZ", how does M show it is polyalphabetic?</li>
+<li>Why is polyalphabetic stronger than monoalphabetic?</li><li>Classify: Caesar, Vigenère, Playfair, Hill, Vernam.</li>
+<li>One-to-one vs one-to-many: which is which?</li></ol>
+
+<h2>5. Vigenère Cipher (Slides 30–35)</h2>
+<ul><li>Designed by <b>Blaise de Vigenère</b> (16th-century French) · <b>polyalphabetic</b> · 26 × 26 table or maths.</li>
+<li><b>Repeat the key</b> until it is as long as the plaintext (remove spaces first).</li></ul>
+<div class="box"><b>Method 1 (table):</b> encryption — plaintext letter in the first row, key letter in the first column, ciphertext where they meet (G × L → R). Decryption — go to the key's row, find the cipher letter, read its column header.<br>
+<b>Method 2 (maths) ⭐:</b> C = (P + K) mod 26 &nbsp;·&nbsp; P = (C − K) mod 26 (negative → +26)</div>
+<h3>Slide 31: GIVE MONEY, key LOCK</h3>
+<table class="t"><tr><th>P</th><td>G</td><td>I</td><td>V</td><td>E</td><td>M</td><td>O</td><td>N</td><td>E</td><td>Y</td></tr>
+<tr><th>P value</th><td>6</td><td>8</td><td>21</td><td>4</td><td>12</td><td>14</td><td>13</td><td>4</td><td>24</td></tr>
+<tr><th>K</th><td>L</td><td>O</td><td>C</td><td>K</td><td>L</td><td>O</td><td>C</td><td>K</td><td>L</td></tr>
+<tr><th>K value</th><td>11</td><td>14</td><td>2</td><td>10</td><td>11</td><td>14</td><td>2</td><td>10</td><td>11</td></tr>
+<tr><th>Sum</th><td>17</td><td>22</td><td>23</td><td>14</td><td>23</td><td>28</td><td>15</td><td>14</td><td>35</td></tr>
+<tr><th>mod 26</th><td>17</td><td>22</td><td>23</td><td>14</td><td>23</td><td>2</td><td>15</td><td>14</td><td>9</td></tr>
+<tr><th>C</th><td><b>R</b></td><td><b>W</b></td><td><b>X</b></td><td><b>O</b></td><td><b>X</b></td><td><b>C</b></td><td><b>P</b></td><td><b>O</b></td><td><b>J</b></td></tr></table>
+<p>Ciphertext <b>RWXOXCPOJ</b> ✓ · Slide 35: "She is listening", key PASCAL → <b>HHWKSWXSLGNTCG</b> ✓</p>
+<div class="warn">⚠ Remove spaces before repeating the key · write the key directly under the plaintext · 28 → 2 · negative → +26 · key length 1 = Caesar.</div>
+<h3>Practice — Vigenère</h3><ol>
+<li>Encrypt <b>ATTACK AT DAWN</b>, key <b>LEMON</b>.</li><li>Encrypt <b>HELLO</b>, key <b>KEY</b>.</li><li>Decrypt <b>ARHIZVYM</b>, key <b>INFO</b>.</li>
+<li>Encrypt <b>INFORMATION SECURITY</b>, key <b>PASCAL</b>.</li><li>Decrypt <b>MVWZXMQVYZLW</b>, key <b>KEY</b>.</li>
+<li>If the key is one letter, which cipher does Vigenère become? Why is Vigenère stronger than Caesar?</li></ol>
+
+<h2>6. Vernam Cipher / One-Time Pad (Slides 36–38)</h2>
+<ul><li>Letters → numbers (a = 0 … z = 25) · <b>key length = plaintext length</b> · random key used once → <b>One-Time Pad</b>, theoretically unbreakable · combines plaintext and key using <b>XOR</b>.</li></ul>
+<div class="warn">⚠ Slide 36 says XOR, but the worked example (slides 37–38) uses <b>(P + K) mod 26</b>. Letters given → use mod 26. Binary bits given → use XOR.</div>
+<h3>Slide example: RANSWARDPK, key RANCHOBABA</h3>
+<table class="t"><tr><th>P.T</th><td>R</td><td>A</td><td>N</td><td>S</td><td>W</td><td>A</td><td>R</td><td>D</td><td>P</td><td>K</td></tr>
+<tr><th>value</th><td>17</td><td>0</td><td>13</td><td>18</td><td>22</td><td>0</td><td>17</td><td>3</td><td>15</td><td>10</td></tr>
+<tr><th>Key</th><td>17</td><td>0</td><td>13</td><td>2</td><td>7</td><td>14</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+<tr><th>Sum</th><td>34</td><td>0</td><td>26</td><td>20</td><td>29</td><td>14</td><td>18</td><td>3</td><td>16</td><td>10</td></tr>
+<tr><th>mod 26</th><td>8</td><td>0</td><td>0</td><td>20</td><td>3</td><td>14</td><td>18</td><td>3</td><td>16</td><td>10</td></tr>
+<tr><th>C.T</th><td><b>I</b></td><td><b>A</b></td><td><b>A</b></td><td><b>U</b></td><td><b>D</b></td><td><b>O</b></td><td><b>S</b></td><td><b>D</b></td><td><b>Q</b></td><td><b>K</b></td></tr></table>
+<p>Ciphertext <b>IAAUDOSDQK</b> ✓ · Decryption: C − K, e.g. 8 − 17 = −9 → +26 = 17 = R ✓</p>
+<p><b>XOR rules:</b> 0⊕0 = 0, 1⊕1 = 0, 0⊕1 = 1, 1⊕0 = 1 — <i>"same = 0, different = 1"</i>. Decrypt with the same XOR: (P ⊕ K) ⊕ K = P.</p>
+<table class="t"><tr><th></th><th>Vigenère</th><th>Vernam</th></tr><tr><td>Key length</td><td>Short, repeated</td><td>= message length</td></tr><tr><td>Repeats?</td><td>Yes</td><td>No</td></tr><tr><td>Security</td><td>Breakable (pattern)</td><td>Theoretically unbreakable</td></tr></table>
+<h3>Practice — Vernam</h3><ol>
+<li>Encrypt <b>HELLO</b>, key <b>XMCKL</b>.</li><li>Decrypt <b>EQNVZ</b>, key <b>XMCKL</b>.</li><li>Encrypt <b>MONEY</b>, key <b>BURNS</b>.</li>
+<li>Decrypt <b>ROTQ</b>, key <b>ZOOM</b> (negatives).</li><li>Encrypt <b>ATTACK</b>, key <b>QWERTY</b>.</li>
+<li>Binary: P = 1011 0110, K = 0110 1100. Find C with XOR, then decrypt C.</li>
+<li>Why must the key be as long as the message? Why "one-time"?</li></ol>
+
+<h2>7. Hill Cipher (Slides 39–46)</h2>
+<ul><li>Developed by <b>Lester Hill (1929)</b> · <b>polyalphabetic</b> · encrypts <b>blocks</b> simultaneously (Playfair only does pairs) · based on <b>linear algebra / matrices</b>.</li></ul>
+<div class="box"><b>Encryption:</b> C = K · P mod 26 &nbsp;&nbsp; <b>Decryption:</b> P = K⁻¹ · C mod 26<br>
+2×2 key → split plaintext into pairs → column vectors → multiply → mod 26.<br>
+| a b | × | x | = | a·x + b·y | &nbsp;&nbsp; | c d | × | y | = | c·x + d·y | &nbsp;— <i>"row times column"</i></div>
+<h3>Slide example: ATTACK, K = |2 3; 3 6|</h3>
+<table class="t"><tr><th>Pair</th><th>Vector</th><th>Top 2x + 3y</th><th>Bottom 3x + 6y</th><th>mod 26</th><th>Cipher</th></tr>
+<tr><td>AT</td><td>(0, 19)</td><td>57</td><td>114</td><td>5, 10</td><td><b>FK</b></td></tr>
+<tr><td>TA</td><td>(19, 0)</td><td>38</td><td>57</td><td>12, 5</td><td><b>MF</b></td></tr>
+<tr><td>CK</td><td>(2, 10)</td><td>34</td><td>66</td><td>8, 14</td><td><b>IO</b></td></tr></table>
+<p>ATTACK → <b>FKMFIO</b> ✓</p>
+<h3>Finding K⁻¹ — 5-step recipe</h3>
+<table class="t"><tr><th>Step</th><th>What to do</th><th>Slide K = |2 3; 3 6|</th></tr>
+<tr><td>1</td><td>Determinant d = ad − bc (mod 26)</td><td>12 − 9 = <b>3</b></td></tr>
+<tr><td>2</td><td>Find d⁻¹: d × d⁻¹ mod 26 = 1</td><td>3 × 9 = 27 → <b>9</b></td></tr>
+<tr><td>3</td><td>Adjoint: swap a and d, negate b and c</td><td>|6 −3; −3 2|</td></tr>
+<tr><td>4</td><td>Remove negatives (+26)</td><td>|6 23; 23 2|</td></tr>
+<tr><td>5</td><td>K⁻¹ = d⁻¹ × adj, mod 26</td><td>9 × … = |54 207; 207 18| → <b>|2 25; 25 18|</b></td></tr></table>
+<p><b>Inverses mod 26:</b> 1↔1 · 3↔9 · 5↔21 · 7↔15 · 11↔19 · 17↔23 · 25↔25</p>
+<p>Decrypt FKMFIO: FK (5,10) → 260, 305 → 0, 19 = AT · MF (12,5) → 149, 390 → 19, 0 = TA · IO (8,14) → 366, 452 → 2, 10 = CK → <b>ATTACK</b> ✓</p>
+<div class="warn">⚠ Extra: if the determinant is even or 13 (shares a factor with 26) there is no inverse → the key is invalid (e.g. |2 1; 4 3|, det = 2).<br>
+Checklist: K × P (key first) · top row → top result · det = ad − bc · adjoint swaps a↔d, negates b and c · remove negatives before × d⁻¹ · mod 26 at every step · pad an odd-length message.</div>
+<h3>Practice — Hill</h3><ol>
+<li>Encrypt <b>HELP</b>, K = |3 3; 2 5|.</li><li>Find K⁻¹ for K = |3 3; 2 5| (all 5 steps).</li><li>Decrypt <b>HIAT</b> using your K⁻¹.</li>
+<li>Encrypt <b>CODE</b> with K = |2 3; 3 6|, then decrypt with K⁻¹ = |2 25; 25 18| to check.</li><li>Encrypt <b>HELP</b> with K = |2 3; 3 6|.</li>
+<li>K = |5 8; 17 3|: (a) det mod 26 (b) K⁻¹ (c) encrypt <b>MATH</b>.</li><li>Is K = |2 1; 4 3| a valid key? Why?</li>
+<li>Find the inverse mod 26 of 5, 7 and 11.</li></ol>
+
+<h2 class="pb">Part 2 — Master Comparison Table</h2>
+<table class="t"><tr><th>Cipher</th><th>Type</th><th>Key</th><th>Encrypt</th><th>Decrypt</th><th>Special</th><th>Weakness / strength</th></tr>
+<tr><td><b>Caesar</b></td><td>Mono</td><td>1–25</td><td>(p + k) mod 26</td><td>(c − k) mod 26</td><td>Caesar used 3</td><td>25 keys → brute force</td></tr>
+<tr><td><b>Playfair</b></td><td>Mono (teacher)</td><td>Keyword → 5×5</td><td>Row right · column below · rectangle corners</td><td>Row left · column above · corners</td><td>I/J; X doubles, Z lone</td><td>Pairs; Wheatstone 1854</td></tr>
+<tr><td><b>Vigenère</b></td><td>Poly</td><td>Keyword repeated</td><td>(P + K) mod 26</td><td>(C − K) mod 26</td><td>16th c. French</td><td>Repeating key pattern</td></tr>
+<tr><td><b>Vernam</b></td><td>Poly</td><td>Length = message</td><td>(P + K) mod 26 / XOR</td><td>(C − K) mod 26 / XOR</td><td>One-Time Pad</td><td>Theoretically unbreakable</td></tr>
+<tr><td><b>Hill</b></td><td>Poly</td><td>Matrix</td><td>C = KP mod 26</td><td>P = K⁻¹C mod 26</td><td>det needs inverse</td><td>Lester Hill 1929; blocks</td></tr></table>
+
+<h2>Part 3 — Answer Key</h2>
+<h3>Monoalphabetic</h3>
+<div class="ans">M1 <b>LTEKTZ</b> · M2 <b>DGFTN</b> · M3 <b>HELLO</b><br>M4 <b>N</b> appears twice because M appears twice — same plain letter always gives the same cipher letter (one-to-one).<br>M5 Letter frequencies are preserved; the most common cipher letter is probably E, so the mapping can be recovered.<br>M6 <b>False</b>.</div>
+<h3>Caesar</h3>
+<div class="ans">C1 <b>DWWDFN</b> · C2 <b>EJGWF</b> (Z: 25 + 5 = 30 → 4 = E) · C3 <b>THIS IS FUN</b> · C4 <b>APPLE</b> · C5 <b>XRAY</b> (E: 4 − 7 = −3 → 23 = X)<br>
+C6 key = <b>3</b>, plaintext <b>HELLO</b><br>
+C7 <b>COMEBSDI</b> (S 28→2 C · E→O · C→M · U 30→4 E · R→B · I→S · T 29→3 D · Y 34→8 I)<br>
+C8 k = 0 (or 26…) returns the original text, so only 1–25 are useful → <b>brute-force attack</b>.</div>
+<h3>Playfair</h3>
+<div class="ans">P1 <table class='m'><tr><td>M</td><td>O</td><td>N</td><td>A</td><td>R</td></tr><tr><td>C</td><td>H</td><td>Y</td><td>B</td><td>D</td></tr><tr><td>E</td><td>F</td><td>G</td><td>I/J</td><td>K</td></tr><tr><td>L</td><td>P</td><td>Q</td><td>S</td><td>T</td></tr><tr><td>U</td><td>V</td><td>W</td><td>X</td><td>Z</td></tr></table><br>IN ST RU ME NT SZ → <b>GA TL MZ CL RQ TX</b> → <b>GATLMZCLRQTX</b></div>
+<div class="ans">P2 ME ET → <b>RM GR</b></div>
+<div class="ans">P3 <table class='m'><tr><td>S</td><td>E</td><td>C</td><td>U</td><td>R</td></tr><tr><td>I/J</td><td>T</td><td>Y</td><td>A</td><td>B</td></tr><tr><td>D</td><td>F</td><td>G</td><td>H</td><td>K</td></tr><tr><td>L</td><td>M</td><td>N</td><td>O</td><td>P</td></tr><tr><td>Q</td><td>V</td><td>W</td><td>X</td><td>Z</td></tr></table><br>BA LX LO ON → <b>IB OQ MP PO</b> → <b>IBOQMPPO</b></div>
+<div class="ans">P4 <table class='m'><tr><td>K</td><td>E</td><td>Y</td><td>W</td><td>O</td></tr><tr><td>R</td><td>D</td><td>A</td><td>B</td><td>C</td></tr><tr><td>F</td><td>G</td><td>H</td><td>I/J</td><td>L</td></tr><tr><td>M</td><td>N</td><td>P</td><td>Q</td><td>S</td></tr><tr><td>T</td><td>U</td><td>V</td><td>X</td><td>Z</td></tr></table><br>HA MX ME RZ → <b>PH QT NK CT</b> → <b>PHQTNKCT</b></div>
+<div class="ans">P5 IC EF → <b>HI DE</b> → <b>HIDE</b><br>P6 (a) <b>BO OK KE EP ER</b> (b) <b>TO OT HZ</b> (c) <b>CO MX MI TX TE EZ</b></div>
+<div class="ans">P7 <table class='m'><tr><td>P</td><td>L</td><td>A</td><td>Y</td><td>F</td></tr><tr><td>I/J</td><td>R</td><td>B</td><td>C</td><td>D</td></tr><tr><td>E</td><td>G</td><td>H</td><td>K</td><td>M</td></tr><tr><td>N</td><td>O</td><td>Q</td><td>S</td><td>T</td></tr><tr><td>U</td><td>V</td><td>W</td><td>X</td><td>Z</td></tr></table><br>HI DE TH EG OL DZ → <b>EB IM QM GH VR MF</b> → <b>EBIMQMGHVRMF</b><br>
+P8 25 cells for 26 letters, so I and J share a cell. Invented by <b>Wheatstone in 1854</b>.</div>
+<h3>Polyalphabetic</h3>
+<div class="ans">PA1 Multiple substitution alphabets; mapping changes during the message; no fixed substitution.<br>PA2 M → N the first time and → X the second time.<br>PA3 It reduces frequency patterns, making frequency analysis harder.<br>PA4 Mono: Caesar, Playfair · Poly: Vigenère, Hill, Vernam.<br>PA5 One-to-one = monoalphabetic · one-to-many = polyalphabetic.</div>
+<h3>Vigenère</h3>
+<div class="ans">V1 <b>LXFOPVEFRNHR</b> · V2 <b>RIJVS</b> · V3 <b>SECURITY</b> · V4 <b>XNXQRXPTAQNDTCMTIEN</b> · V5 <b>CRYPTOGRAPHY</b><br>V6 It becomes <b>Caesar</b>. Vigenère uses multiple alphabets, so the same letter encrypts differently depending on the key letter, hiding frequencies.</div>
+<h3>Vernam</h3>
+<div class="ans">VN1 <b>EQNVZ</b> · VN2 <b>HELLO</b> (E: 4 − 23 = −19 → 7 = H) · VN3 <b>NIERQ</b> · VN4 <b>SAFE</b> (R: 17 − 25 = −8 → 18 = S) · VN5 <b>QPXRVI</b><br>
+VN6 C = <b>1101 1010</b>; C ⊕ K = 1011 0110 = P ✓<br>VN7 A shorter key would repeat and create patterns; "one-time" because each random key is used only once — then it is theoretically unbreakable.</div>
+<h3>Hill</h3>
+<div class="ans">H1 HE (7,4): 33 → 7 (H), 34 → 8 (I) · LP (11,15): 78 → 0 (A), 97 → 19 (T) → <b>HIAT</b><br>
+H2 det = 15 − 6 = <b>9</b>; 9⁻¹ = <b>3</b>; adj = |5 −3; −2 3| → |5 23; 24 3|; × 3 = |15 69; 72 9| → <b>K⁻¹ = |15 17; 20 9|</b><br>
+H3 <b>HELP</b><br>H4 CODE → <b>UMSH</b>; check UM (20,12): 340 → 2 (C), 716 → 14 (O) ✓<br>H5 <b>ATPT</b><br>
+H6 (a) det = 15 − 136 = −121 → <b>9</b> (b) 9⁻¹ = 3 → <b>K⁻¹ = |9 2; 1 15|</b> (c) MATH → <b>IWVG</b><br>
+H7 <b>No</b> — det = 6 − 4 = 2 (even) → no inverse mod 26 → cannot decrypt.<br>H8 5⁻¹ = <b>21</b>, 7⁻¹ = <b>15</b>, 11⁻¹ = <b>19</b></div>
+
+<h2>Study Plan</h2>
+<ol><li><b>Day 1:</b> toolkit + Caesar + Monoalphabetic.</li><li><b>Day 2:</b> Playfair — build every matrix by hand, P1–P8.</li>
+<li><b>Day 3:</b> Vigenère + Vernam (table layout every time).</li><li><b>Day 4:</b> Hill — H1–H8 twice, memorise the inverse table.</li>
+<li><b>Day 5:</b> redo the slide examples without looking: HELLO → LIPPS, ABHI Playfair, GIVE MONEY, RANSWARDPK, ATTACK → FKMFIO.</li></ol>
+<p><b>In the exam:</b> always write the number table (letter, value, calculation, mod 26, result) — method marks even if one letter is wrong.</p>
+</body></html>
